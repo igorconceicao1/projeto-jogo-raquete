@@ -1,0 +1,151 @@
+<html>
+    <body>
+        <canvas id="folha" width="600" height="500"> </canvas>
+
+        <script>
+            //intervalos de 30ms, TIC TAC  do jogo
+            window.onload = function(){ // carrega os primeiros comandos
+                iniciar(); // eu inicializo os comandos e crio todas as variaveis
+
+                setInterval(principal, 300 / 30); // roda nosso jogo dentro do laço
+            }
+
+            function iniciar(){
+                //em cima coloquei a area de desenho dentro do browser
+                // agora nessas duas linhas configurei a area de desenho
+                folhaDesenho = document.getElementById("folha");
+                areaDesenho = folhaDesenho.getContext("2d");
+            
+                //definicao de variaveis, com as medidas
+                larguraCampo = 600;
+                alturaCampo = 500;
+                espessuraRede = 5;
+                
+                diametroBola = 10;
+
+                espessuraRaquete = 11;
+                alturaRaquete = 100;
+
+                efeitoRaquete = 0.3; // colocar o efeito maior que 1 fica muito dificil
+
+                velocidadeJogador2 = 5; // velocidade do jogador 2 para ele se mover
+            
+                //variaveis globais para que nao sejam reiniciadas quando passar pela execucao
+                posicaoJogador1 = posicaoJogador2 = 40;
+                posicaoBolaX = posicaoBolaY = 10; // posicao inicial da Bola
+                velocidadeBolaPosicaoX = velocidadeBolaPosicaoY = 1
+                pontuacaoJogador1 = pontuacaoJogador2 = 0;
+
+                folhaDesenho.addEventListener('mousemove', function(e){
+                    posicaoJogador1 = e.clientY - alturaRaquete / 2;
+                });
+            }
+                
+            function principal(){
+                desenhar();
+                calcular();
+            }
+
+            function desenhar(){
+
+                //gramado
+                areaDesenho.fillStyle = '#286047'; // cor do gramado (verde)
+                areaDesenho.fillRect(0, 0, larguraCampo, alturaCampo); //retangulo, com uma largura e altura
+            
+                //cor principal de trabalho diferente do campo
+                areaDesenho.fillStyle = "#FFFFFF"; // cor branca
+                
+                //rede central
+                areaDesenho.fillStyle = '#FFFFFF'; // cor da linha central
+                areaDesenho.fillRect(larguraCampo/2 - espessuraRede/2, 0, espessuraRede, alturaCampo);//onde a linha central vai cortar
+        
+                //bola
+                areaDesenho.fillRect(posicaoBolaX-diametroBola/2, posicaoBolaY-diametroBola/2, diametroBola, diametroBola); //X, Y, Largura da Bola, Altura da Bola
+
+                //escrever a pontuação dos jogadores
+                areaDesenho.fillText("Humano - " + pontuacaoJogador1 + " pontos", 100, 100); //comando para escrever literalmente na tela, texto a ser escrito + posicao X e Y que esse texto vai ficar
+                areaDesenho.fillText("Computador - " + pontuacaoJogador2 + " pontos", larguraCampo - 200, 100);
+
+            }
+
+            function calcular(){
+
+                posicaoBolaX = posicaoBolaX + velocidadeBolaPosicaoX;
+                posicaoBolaY = posicaoBolaY + velocidadeBolaPosicaoY;
+
+                //raquetes
+                areaDesenho.fillRect(0, posicaoJogador1, espessuraRaquete, alturaRaquete);
+                areaDesenho.fillRect(larguraCampo - espessuraRaquete, posicaoJogador2, espessuraRaquete, alturaRaquete);
+
+                //verifica lateral superior
+                if(posicaoBolaY<0 && velocidadeBolaPosicaoY<0){
+                    velocidadeBolaPosicaoY = -velocidadeBolaPosicaoY; //bate na latearl superior ela inverte a posicao
+                }
+
+                //verifica a lateral inferior
+                if(posicaoBolaY>alturaCampo && velocidadeBolaPosicaoY>0){
+                    velocidadeBolaPosicaoY = -velocidadeBolaPosicaoY; //bate na latearl inferior ela inverte a posicao
+                }
+
+                // verifica se o Jogador 2 fez um ponto
+                if (posicaoBolaX < 0){ // se isso acontecer a bolinha passou para o -1
+                    if(posicaoBolaY > posicaoJogador1 && posicaoBolaY < posicaoJogador1 + alturaRaquete){
+
+                     //verificacao superior && verificacao inferior
+                        // se acontecer preciso rebater a bola
+                        velocidadeBolaPosicaoX = -velocidadeBolaPosicaoX;
+
+                        // quando a raquete bate na pontinha da raquete ela causa um efeito, e é isso que estamos reproduzindo aqui
+                        var diferencaY = posicaoBolaY - (posicaoJogador1 + alturaRaquete / 2);
+                        velocidadeBolaPosicaoY = diferencaY * efeitoRaquete; // esse efeito muda a velocidade da bola
+                    } else{
+                            // pontos do jogador 2
+                            pontuacaoJogador2 = pontuacaoJogador2 + 1;
+
+                            continuar();
+
+                    }
+                }
+
+                // verifica se o Jogador 2 fez um ponto
+                if(posicaoBolaX > larguraCampo){
+                    if(posicaoBolaY > posicaoJogador2 && posicaoBolaY < posicaoJogador2 + alturaRaquete){
+                        //rebater a bola
+                        velocidadeBolaPosicaoX = -velocidadeBolaPosicaoX;
+
+                        // quando a raquete bate na pontinha da raquete ela causa um efeito, e é isso que estamos reproduzindo aqui
+                        var diferencaY = posicaoBolaY - (posicaoJogador2 + alturaRaquete / 2);
+                        velocidadeBolaPosicaoY = diferencaY * efeitoRaquete; // esse efeito muda a velocidade da bola
+                    } else{
+                            // pontos jogador 1
+                            pontuacaoJogador1 = pontuacaoJogador1 + 1;
+
+                            //colocar a bola no centro
+                            continuar();
+
+                    }
+                
+                }
+
+                //atualiza a posicao do jogador 2
+                if(posicaoJogador2 + alturaRaquete / 2 < posicaoBolaY){ // onde o jogador 2 esta ? a cima ou a baixo no campo ?? isso que esse if faz
+                    posicaoJogador2 = posicaoJogador2 + velocidadeJogador2;
+                } else{
+                    posicaoJogador2 = posicaoJogador2 - velocidadeJogador2;
+
+                }
+
+            }
+
+            function continuar(){ // nao recebe parametro pois ela nao espera nada
+                // colocar a bola no centro
+                posicaoBolaX = larguraCampo / 2; //bola posicao X, ganha o meio do campo
+                posicaoBolaY = alturaCampo / 2; // bola na posicao Y, ganha o meio do campo tambem
+                velocidadeBolaPosicaoX = -velocidadeBolaPosicaoX; //reinverte a velocidade e volta para o jogador
+                velocidadeBolaPosicaoY = 3;
+
+            }
+
+        </script>
+    </body>
+</html>
